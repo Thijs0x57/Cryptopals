@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CryptopalsSetOne
@@ -44,25 +45,42 @@ namespace CryptopalsSetOne
 
         private static void ChallengeThree()
         {
-            Console.WriteLine("\nChallenge 3 result: " + decodeHexStringV2("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"));
+            // TODO: Make sure score it right, it seems wayyy too low (which hinders challenge 4)
+            Console.WriteLine("\nChallenge 3 result: " + decodeHexString("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"));
         }
 
         private static void ChallengeFour()
         {
             int counter = 0;
             string line;
+            string[] decodedLines = new string[327];
+            double[] lineScores = new double[327];
 
             // Read the file and display it line by line.  
             System.IO.StreamReader file = new System.IO.StreamReader(@"4.txt");
             while ((line = file.ReadLine()) != null)
             {
                 //Console.WriteLine(line);
-                Console.WriteLine(decodeHexString(line));
+                Tuple<string,double> t = decodeHexString(line);
+                decodedLines[counter] = t.Item1;
+                lineScores[counter] = t.Item2;
+                Console.WriteLine("\ncounter: "+ counter);
+                Console.ReadKey();
                 counter++;
             }
 
+            double maxScore = lineScores.Max();
+            int maxIndex = lineScores.ToList().IndexOf(maxScore);
+
             file.Close();
             Console.WriteLine("There were {0} lines.", counter);
+
+            for (int i = 0; i < decodedLines.Length; i++)
+            {
+                Console.WriteLine("string: " + decodedLines[i] + "\tscore: " + lineScores[i]);
+            }
+
+            Console.WriteLine("string: " + decodedLines[maxIndex] + "\tscore: " + lineScores[maxIndex]);
         }
 
         private static void ChallengeFive()
@@ -91,22 +109,6 @@ namespace CryptopalsSetOne
             return result;
         }
 
-        public static int CalculateCharScore(char input)
-        {
-            switch (input)
-            {
-                // ETAOIN SHRDLU are the most common letters in the English alphabet
-                // apply score based on found chars
-                case 'E': case 'T': case 'A': case 'O': case 'I': case 'N': case 'S': case 'H': case 'R': case 'D': case 'L': case 'U':
-                case 'e': case 't': case 'a': case 'o': case 'i': case 'n': case 's': case 'h': case 'r': case 'd': case 'l': case 'u':
-                    return 1;
-                case '*': case'{': case '}': case '/': case '\\': case '+': case '`': case '⍰': case '~': case '|':
-                    return -1;
-                default:
-                    return 0;
-            }
-        }
-
         public static double EnglishRating(string text) {
             var chars = text.ToUpper().GroupBy(c => c).Select(g => new {g.Key, Count = g.Count()});
 
@@ -131,36 +133,7 @@ namespace CryptopalsSetOne
             {'J', 0.10}, {'Z', 0.07}, {' ', 0.19}
         };
 
-        public static string decodeHexString(string encodedString)
-        {
-            char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
-            int[] score = new int[alphabet.Length];
-            string[] decodedArray = new string[alphabet.Length];
-            byte[] hexEncoded = HexStringToHex(encodedString);
-            // For every char of the alphabet, decode the given string.
-            for (int c = 0; c < alphabet.Length; c++)
-            {
-                string result = "";
-                for (int i = 0; i < hexEncoded.Length; i++)
-                {
-                    char found = Convert.ToChar(XorOneByte(hexEncoded[i], alphabet[c]));
-                    score[c] += CalculateCharScore(found);
-                    result += found;
-                }
-                // add the decoded string to the array
-                decodedArray[c] = result;
-            }
-            int maxScore = score.Max();
-            int maxIndex = score.ToList().IndexOf(maxScore);
-            for (int i = 0; i < decodedArray.Length; i++)
-            {
-                Console.WriteLine("string: " + decodedArray[i] + "\tscore: " + score[i]);
-            }
-
-            return decodedArray[maxIndex];
-        }
-
-        public static string decodeHexStringV2(string encodedString)
+        public static Tuple<string,double> decodeHexString(string encodedString)
         {
             char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
             double[] score = new double[alphabet.Length];
@@ -170,6 +143,8 @@ namespace CryptopalsSetOne
             {
                 string xorredString = XorEncodedHexToString(encodedString, alphabet[c]);
                 score[c] = EnglishRating(xorredString);
+                xorredString = Regex.Replace(xorredString, @"\t|\n|\r", "");
+                if (xorredString.Contains("jumping")) Console.WriteLine("~~~~~~~~~~~~~FOUND IT~~~~~~~~~~~~~~");
                 decodedArray[c] = xorredString;
             }
             double maxScore = score.Max();
@@ -179,7 +154,7 @@ namespace CryptopalsSetOne
                 Console.WriteLine("string: " + decodedArray[i] + "\tscore: " + score[i]);
             }
 
-            return decodedArray[maxIndex];
+            return Tuple.Create(decodedArray[maxIndex], score[maxIndex]);
         }
 
         public static string XorEncodedHexToString(string input, char xorKey)

@@ -12,17 +12,23 @@ namespace CryptopalsSetOne
         public static bool debug = false;
         static void Main(string[] args)
         {
-            ChallengeOne();
-            Console.WriteLine();
-            ChallengeTwo();
-            Console.WriteLine();
-            ChallengeThree();
-            Console.WriteLine();
-            ChallengeFour();
-            Console.WriteLine();
-            ChallengeFive();
-            Console.WriteLine();
+            //ChallengeOne();
+            //Console.WriteLine();
+            //if (debug) Console.ReadKey();
+            //ChallengeTwo();
+            //Console.WriteLine();
+            //if (debug) Console.ReadKey();
+            //ChallengeThree();
+            //Console.WriteLine();
+            //if (debug) Console.ReadKey();
+            //ChallengeFour();
+            //Console.WriteLine();
+            //if (debug) Console.ReadKey();
+            //ChallengeFive();
+            //Console.WriteLine();
+            //if (debug) Console.ReadKey();
             ChallengeSix();
+
             Console.ReadKey();
         }
 
@@ -61,10 +67,10 @@ namespace CryptopalsSetOne
             System.IO.StreamReader file = new System.IO.StreamReader(@"4.txt");
             while ((line = file.ReadLine()) != null)
             {
-                Tuple<string,double> t = decodeHexString(line);
+                Tuple<string, double> t = decodeHexString(line);
                 decodedLines[counter] = t.Item1;
                 lineScores[counter] = t.Item2;
-                if(debug) Console.WriteLine("\ncounter: "+ counter);
+                if (debug) Console.WriteLine("\ncounter: " + counter);
                 counter++;
             }
 
@@ -72,7 +78,7 @@ namespace CryptopalsSetOne
             int maxIndex = lineScores.ToList().IndexOf(maxScore);
 
             file.Close();
-            if(debug) Console.WriteLine("There were {0} lines.", counter);
+            if (debug) Console.WriteLine("There were {0} lines.", counter);
 
             if (debug)
             {
@@ -87,12 +93,35 @@ namespace CryptopalsSetOne
 
         private static void ChallengeFive()
         {
-
+            byte[] line = Encoding.ASCII.GetBytes("Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal");
+            string key = "ICE";
+            string result = ByteArrayToString(XorBytesWithRepeatingKey(line, key));
+            if (result != "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f".ToUpper())
+            {
+                Console.WriteLine("Something went wrong!");
+            }
+            Console.WriteLine("Challenge 5 result: " + result);
         }
 
         private static void ChallengeSix()
         {
+            Console.WriteLine("hamming distance: "+ computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
+        }
 
+        public static byte[] XorBytesWithRepeatingKey(byte[] toBeXorred, string key)
+        {
+            int keyLength = key.Length;
+            byte[] result = new byte[toBeXorred.Length];
+            for (int i = 0; i < toBeXorred.Length; i++)
+            {
+                // To repeat the key, we use the iterator and modulo it against the keylenght. This will return the index of the right key
+                // example: 0 % 3 = 0 ('I'), 1 % 3 = 1 ('C'), 2 % 3 = 2 ('E'), 3 % 3 = 0 ('I'), etc.
+                char charKey = key.ElementAt(i % keyLength);
+                byte b = (XorOneByte(toBeXorred[i], charKey));
+                if (debug) Console.WriteLine("char key: " + charKey + "\tresult byte: " + b);
+                result[i] = b;
+            }
+            return result;
         }
 
         public static byte XorOneByte(byte input, char key)
@@ -111,8 +140,20 @@ namespace CryptopalsSetOne
             return result;
         }
 
-        public static double EnglishRating(string text) {
-            var chars = text.ToUpper().GroupBy(c => c).Select(g => new {g.Key, Count = g.Count()});
+        public static int computeHammingDistance(byte[] input, byte[] other)
+        {
+            int result = 0;
+            if(input.Length != other.Length)
+            {
+                Console.WriteLine("to compute hamming distance, the length needs to be the same.");
+            }
+            if(debug) Console.WriteLine("input: "+input+"\nother: " + other);
+            return result;
+        }
+
+        public static double EnglishRating(string text)
+        {
+            var chars = text.ToUpper().GroupBy(c => c).Select(g => new { g.Key, Count = g.Count() });
 
             double coefficient = 0;
 
@@ -135,7 +176,7 @@ namespace CryptopalsSetOne
             {'J', 0.10}, {'Z', 0.07}, {' ', 0.19}
         };
 
-        public static Tuple<string,double> decodeHexString(string encodedString)
+        public static Tuple<string, double> decodeHexString(string encodedString)
         {
             char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
             double[] score = new double[alphabet.Length];

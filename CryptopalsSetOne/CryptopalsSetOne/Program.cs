@@ -9,6 +9,7 @@ namespace CryptopalsSetOne
 {
     class Program
     {
+        public static bool debug = false;
         static void Main(string[] args)
         {
             ChallengeOne();
@@ -17,7 +18,6 @@ namespace CryptopalsSetOne
             Console.WriteLine();
             ChallengeThree();
             Console.WriteLine();
-            Console.ReadKey();
             ChallengeFour();
             Console.WriteLine();
             ChallengeFive();
@@ -46,13 +46,14 @@ namespace CryptopalsSetOne
         private static void ChallengeThree()
         {
             // TODO: Make sure score it right, it seems wayyy too low (which hinders challenge 4)
-            Console.WriteLine("\nChallenge 3 result: " + decodeHexString("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"));
+            Console.WriteLine("Challenge 3 result: " + decodeHexString("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"));
         }
 
         private static void ChallengeFour()
         {
             int counter = 0;
             string line;
+            // in these arrays we're going store the lines and the scores (i'm too lazy to make a nice data structure)
             string[] decodedLines = new string[327];
             double[] lineScores = new double[327];
 
@@ -60,12 +61,10 @@ namespace CryptopalsSetOne
             System.IO.StreamReader file = new System.IO.StreamReader(@"4.txt");
             while ((line = file.ReadLine()) != null)
             {
-                //Console.WriteLine(line);
                 Tuple<string,double> t = decodeHexString(line);
                 decodedLines[counter] = t.Item1;
                 lineScores[counter] = t.Item2;
-                Console.WriteLine("\ncounter: "+ counter);
-                Console.ReadKey();
+                if(debug) Console.WriteLine("\ncounter: "+ counter);
                 counter++;
             }
 
@@ -73,14 +72,17 @@ namespace CryptopalsSetOne
             int maxIndex = lineScores.ToList().IndexOf(maxScore);
 
             file.Close();
-            Console.WriteLine("There were {0} lines.", counter);
+            if(debug) Console.WriteLine("There were {0} lines.", counter);
 
-            for (int i = 0; i < decodedLines.Length; i++)
+            if (debug)
             {
-                Console.WriteLine("string: " + decodedLines[i] + "\tscore: " + lineScores[i]);
+                for (int i = 0; i < decodedLines.Length; i++)
+                {
+                    Console.WriteLine("string: " + decodedLines[i] + "\tscore: " + lineScores[i]);
+                }
             }
 
-            Console.WriteLine("string: " + decodedLines[maxIndex] + "\tscore: " + lineScores[maxIndex]);
+            Console.WriteLine("Challenge 4 result: " + decodedLines[maxIndex] + "\tscore: " + lineScores[maxIndex]);
         }
 
         private static void ChallengeFive()
@@ -135,7 +137,7 @@ namespace CryptopalsSetOne
 
         public static Tuple<string,double> decodeHexString(string encodedString)
         {
-            char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+            char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
             double[] score = new double[alphabet.Length];
             string[] decodedArray = new string[alphabet.Length];
             // For every char of the alphabet, decode the given string.
@@ -144,14 +146,16 @@ namespace CryptopalsSetOne
                 string xorredString = XorEncodedHexToString(encodedString, alphabet[c]);
                 score[c] = EnglishRating(xorredString);
                 xorredString = Regex.Replace(xorredString, @"\t|\n|\r", "");
-                if (xorredString.Contains("jumping")) Console.WriteLine("~~~~~~~~~~~~~FOUND IT~~~~~~~~~~~~~~");
                 decodedArray[c] = xorredString;
             }
             double maxScore = score.Max();
             int maxIndex = score.ToList().IndexOf(maxScore);
-            for (int i = 0; i < decodedArray.Length; i++)
+            if (debug)
             {
-                Console.WriteLine("string: " + decodedArray[i] + "\tscore: " + score[i]);
+                for (int i = 0; i < decodedArray.Length; i++)
+                {
+                    Console.WriteLine("string: " + decodedArray[i] + "\tscore: " + score[i]);
+                }
             }
 
             return Tuple.Create(decodedArray[maxIndex], score[maxIndex]);

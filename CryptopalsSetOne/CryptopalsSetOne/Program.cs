@@ -9,7 +9,7 @@ namespace CryptopalsSetOne
 {
     class Program
     {
-        public static bool debug = false;
+        public static bool debug = true;
         static void Main(string[] args)
         {
             //ChallengeOne();
@@ -105,7 +105,7 @@ namespace CryptopalsSetOne
 
         private static void ChallengeSix()
         {
-            Console.WriteLine("hamming distance: "+ computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
+            Console.WriteLine("hamming distance: " + computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
         }
 
         public static byte[] XorBytesWithRepeatingKey(byte[] toBeXorred, string key)
@@ -143,11 +143,26 @@ namespace CryptopalsSetOne
         public static int computeHammingDistance(byte[] input, byte[] other)
         {
             int result = 0;
-            if(input.Length != other.Length)
+            if (input.Length != other.Length)
             {
                 Console.WriteLine("to compute hamming distance, the length needs to be the same.");
             }
-            if(debug) Console.WriteLine("input: "+input+"\nother: " + other);
+            if (debug) Console.WriteLine("input: " + ByteArrayToString(input) + "\nother: " + ByteArrayToString(other));
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                // Xor the values (to see if they're different)
+                var value = input[i] ^ other[i];
+                while (value != 0)
+                {
+                    result++;
+                    if(debug) Console.WriteLine("original value: " + value + "\tvalue -1: " + (value - 1) + "\tAND: " + (value & (value - 1)));
+                    // not sure what is happening here
+                    // value = value & value - 1; 
+                    value &= value - 1;
+                }
+                if (debug) Console.WriteLine();
+            }
             return result;
         }
 

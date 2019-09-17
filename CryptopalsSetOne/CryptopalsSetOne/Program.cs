@@ -19,8 +19,8 @@ namespace CryptopalsSetOne
             //ChallengeTwo();
             //Console.WriteLine();
             //if (debug) Console.ReadKey();
-            //ChallengeThree();
-            //Console.WriteLine();
+            ChallengeThree();
+            Console.WriteLine();
             //if (debug) Console.ReadKey();
             //ChallengeFour();
             //Console.WriteLine();
@@ -63,14 +63,16 @@ namespace CryptopalsSetOne
             // in these arrays we're going store the lines and the scores (i'm too lazy to make a nice data structure)
             string[] decodedLines = new string[327];
             double[] lineScores = new double[327];
+            char[] alphabetScores = new char[327];
 
             // Read the file and display it line by line.  
             System.IO.StreamReader file = new System.IO.StreamReader(@"4.txt");
             while ((line = file.ReadLine()) != null)
             {
-                Tuple<string, double> t = decodeHexString(line);
-                decodedLines[counter] = t.Item1;
-                lineScores[counter] = t.Item2;
+                Tuple<Tuple<string, double>,char> t = decodeHexString(line);
+                decodedLines[counter] = t.Item1.Item1;
+                lineScores[counter] = t.Item1.Item2;
+                alphabetScores[counter] = t.Item2;
                 if (debug) Console.WriteLine("\ncounter: " + counter);
                 counter++;
             }
@@ -156,6 +158,35 @@ namespace CryptopalsSetOne
             var bruteForceResults = transposedBlocks
                 .Select(x => decodeHexString(ByteArrayToString(x)))
                 .ToList();
+            var iterator = 0;
+            foreach (var result in bruteForceResults)
+            {
+                Console.WriteLine("brute force result {0}: {1}", iterator, result);
+                iterator++;
+            }
+
+            // 8. "For each block, the single-byte XOR key that produces the best looking histogram is the repeating-key
+            // XOR key byte for that block. Put them together and you have the key."
+            var fullKey = string.Empty;
+            foreach (var result in bruteForceResults)
+            {
+                string key = null;
+                double currentHighestScore = 0;
+
+                //foreach (var attempt in result)
+                for(int i = 0; i < 2; i++)
+                {
+                    var rating = EnglishRating(result.Item1.Item1);
+                    if (currentHighestScore < rating)
+                    {
+                        key = result.Item2.ToString();
+                        currentHighestScore = rating;
+                    }
+                }
+
+                fullKey += key;
+            }
+            Console.WriteLine("full key: {0}", fullKey);
         }
 
         public static byte[] XorBytesWithRepeatingKey(byte[] toBeXorred, string key)
@@ -277,7 +308,7 @@ namespace CryptopalsSetOne
             {'J', 0.10}, {'Z', 0.07}, {' ', 0.19}
         };
 
-        public static Tuple<string, double> decodeHexString(string encodedString)
+        public static Tuple<Tuple<string, double>,char> decodeHexString(string encodedString)
         {
             char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
             double[] score = new double[alphabet.Length];
@@ -300,7 +331,7 @@ namespace CryptopalsSetOne
                 }
             }
 
-            return Tuple.Create(decodedArray[maxIndex], score[maxIndex]);
+            return Tuple.Create(Tuple.Create(decodedArray[maxIndex], score[maxIndex]), alphabet[maxIndex]);
         }
 
         public static string XorEncodedHexToString(string input, char xorKey)

@@ -146,7 +146,16 @@ namespace CryptopalsSetOne
                 if (debug) Console.WriteLine("Keysize = {0} \t normalizedDistance = {1}", kvp.Key, kvp.Value);
             }
             Console.WriteLine("smallest distance: {0}, keySize: {1}", smallestDistance.Value, smallestDistance.Key);
-            //Console.WriteLine("decoded from base64:\n" + Encoding.Default.GetString(cipherText));
+
+            // 5. "Now that you probably know the KEYSIZE: break the ciphertext into blocks of KEYSIZE length."
+            var blocksOfKeySize = cipherText.CreateMatrix(smallestDistance.Key);
+            // 6. "Now transpose the blocks: make a block that is the first byte of every block,
+            // and a block that is the second byte of every block, and so on."
+            var transposedBlocks = blocksOfKeySize.Transpose();
+            // 7. "Solve each block as if it was single-character XOR. You already have code to do this."
+            var bruteForceResults = transposedBlocks
+                .Select(x => decodeHexString(ByteArrayToString(x)))
+                .ToList();
         }
 
         public static byte[] XorBytesWithRepeatingKey(byte[] toBeXorred, string key)

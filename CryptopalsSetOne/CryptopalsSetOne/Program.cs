@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +10,7 @@ namespace CryptopalsSetOne
 {
     class Program
     {
-        public static bool debug = true;
+        public static bool debug = false;
         static void Main(string[] args)
         {
             //ChallengeOne();
@@ -106,6 +107,45 @@ namespace CryptopalsSetOne
         private static void ChallengeSix()
         {
             Console.WriteLine("hamming distance: " + computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
+            string encoded = File.ReadAllText("6.txt");
+            Console.WriteLine("encoded with base64:\n" + encoded);
+            byte[] cipherText = DecodeBase64(encoded);
+            Dictionary<int, int> keySizeResults = new Dictionary<int, int>();
+            // 1. "Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40."
+            for (var keySize = 2; keySize <= 40; keySize++)
+            {
+                // 2. For hamming distance tests see Funcationlity\StringExtensionTests.cs
+                // 3. "For each KEYSIZE, take the first KEYSIZE worth of bytes, 
+                // and the second KEYSIZE worth of bytes, and find the edit distance between them.
+                // Normalize this result by dividing by KEYSIZE."
+                var hammingDistance = 0;
+                var numberOfHams = 0;
+
+                for (int i = 1; i < cipherText.Length / keySize; i++)
+                {
+                    // take the amount of bytes the key is long
+                    // this means that a keySize of 2 will take the first 2 bytes
+                    // The .Take method returns the specified part of an array
+                    // The .skip method makes sure we don't use the same piece of the text twice (it does so by using the inumerator)
+                    var firstKeySizeBytes = cipherText.Skip(keySize * (i - 1)).Take(keySize);
+                    var secondKeySizeBytes = cipherText.Skip(keySize * i).Take(keySize);
+
+                    hammingDistance += computeHammingDistance(firstKeySizeBytes.ToArray(), secondKeySizeBytes.ToArray());
+                    numberOfHams++;
+                }
+
+                var normalizedDistance = hammingDistance / numberOfHams / keySize;
+                keySizeResults.Add(keySize, normalizedDistance);
+            }
+            KeyValuePair<int,int> smallestDistance = keySizeResults.First();
+            Console.WriteLine("keySize results: ");
+            foreach(KeyValuePair<int, int> kvp in keySizeResults)
+            {
+                if (kvp.Value < smallestDistance.Value) smallestDistance = kvp;
+                Console.WriteLine("Keysize = {0} \t normalizedDistance = {1}", kvp.Key, kvp.Value);
+            }
+            Console.WriteLine("smallest distance: {0}, keySize: {1}", smallestDistance.Value, smallestDistance.Key);
+            //Console.WriteLine("decoded from base64:\n" + Encoding.Default.GetString(cipherText));
         }
 
         public static byte[] XorBytesWithRepeatingKey(byte[] toBeXorred, string key)
@@ -156,7 +196,7 @@ namespace CryptopalsSetOne
                 while (value != 0)
                 {
                     result++;
-                    if(debug) Console.WriteLine("original value: " + value + "\tvalue -1: " + (value - 1) + "\tAND: " + (value & (value - 1)));
+                    if (debug) Console.WriteLine("original value: " + value + "\tvalue -1: " + (value - 1) + "\tAND: " + (value & (value - 1)));
                     // not sure what is happening here
                     // value = value & value - 1; 
                     value &= value - 1;
@@ -233,6 +273,11 @@ namespace CryptopalsSetOne
         {
             // Convert Hex to base64
             return Convert.ToBase64String(HexStringToHex(input));
+        }
+
+        public static byte[] DecodeBase64(string input)
+        {
+            return Convert.FromBase64String(input);
         }
 
         //This method takes hex in a string and return an byte array

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CryptopalsSetOne
 {
-    class Program
+    static class Program
     {
         public static bool debug = false;
         static void Main(string[] args)
@@ -106,15 +106,14 @@ namespace CryptopalsSetOne
 
         private static void ChallengeSix()
         {
-            Console.WriteLine("hamming distance: " + computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
+            Console.WriteLine("hamming distance test: " + computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
             string encoded = File.ReadAllText("6.txt");
-            Console.WriteLine("encoded with base64:\n" + encoded);
+            if (debug) Console.WriteLine("encoded with base64:\n" + encoded);
             byte[] cipherText = DecodeBase64(encoded);
             Dictionary<int, int> keySizeResults = new Dictionary<int, int>();
             // 1. "Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40."
             for (var keySize = 2; keySize <= 40; keySize++)
             {
-                // 2. For hamming distance tests see Funcationlity\StringExtensionTests.cs
                 // 3. "For each KEYSIZE, take the first KEYSIZE worth of bytes, 
                 // and the second KEYSIZE worth of bytes, and find the edit distance between them.
                 // Normalize this result by dividing by KEYSIZE."
@@ -126,7 +125,8 @@ namespace CryptopalsSetOne
                     // take the amount of bytes the key is long
                     // this means that a keySize of 2 will take the first 2 bytes
                     // The .Take method returns the specified part of an array
-                    // The .skip method makes sure we don't use the same piece of the text twice (it does so by using the inumerator)
+                    // The .skip method makes sure we don't use the same piece of the text twice 
+                    // it does so by multiplying the inumerator with the keySize
                     var firstKeySizeBytes = cipherText.Skip(keySize * (i - 1)).Take(keySize);
                     var secondKeySizeBytes = cipherText.Skip(keySize * i).Take(keySize);
 
@@ -137,12 +137,13 @@ namespace CryptopalsSetOne
                 var normalizedDistance = hammingDistance / numberOfHams / keySize;
                 keySizeResults.Add(keySize, normalizedDistance);
             }
-            KeyValuePair<int,int> smallestDistance = keySizeResults.First();
-            Console.WriteLine("keySize results: ");
-            foreach(KeyValuePair<int, int> kvp in keySizeResults)
+
+            KeyValuePair<int, int> smallestDistance = keySizeResults.First();
+            // go through the dictionary and get the smallest normilzed distance (since this is likely the key size)
+            foreach (KeyValuePair<int, int> kvp in keySizeResults)
             {
                 if (kvp.Value < smallestDistance.Value) smallestDistance = kvp;
-                Console.WriteLine("Keysize = {0} \t normalizedDistance = {1}", kvp.Key, kvp.Value);
+                if (debug) Console.WriteLine("Keysize = {0} \t normalizedDistance = {1}", kvp.Key, kvp.Value);
             }
             Console.WriteLine("smallest distance: {0}, keySize: {1}", smallestDistance.Value, smallestDistance.Key);
             //Console.WriteLine("decoded from base64:\n" + Encoding.Default.GetString(cipherText));
@@ -204,6 +205,42 @@ namespace CryptopalsSetOne
                 if (debug) Console.WriteLine();
             }
             return result;
+        }
+
+        public static T[][] CreateMatrix<T>(this IEnumerable<T> source, int size)
+        {
+            var taken = 0;
+            var output = new List<T[]>();
+            var enumeratedSource = source.ToArray();
+
+            while (taken < enumeratedSource.Length)
+            {
+                output.Add(enumeratedSource.Skip(taken).Take(size).ToArray());
+                taken += size;
+            }
+
+            return output.ToArray();
+        }
+
+        public static T[][] Transpose<T>(this T[][] source)
+        {
+            var transposedBlocks = new List<List<T>>();
+
+            for (var i = 0; i <= source.Length; i++)
+            {
+                foreach (var block in source.ToList())
+                {
+                    if (i < block.Length)
+                    {
+                        if (transposedBlocks.ElementAtOrDefault(i) == null)
+                            transposedBlocks.Add(new List<T>());
+
+                        transposedBlocks[i].Add(block[i]);
+                    }
+                }
+            }
+
+            return transposedBlocks.Select(x => x.ToArray()).ToArray();
         }
 
         public static double EnglishRating(string text)

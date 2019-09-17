@@ -186,7 +186,9 @@ namespace CryptopalsSetOne
 
                 fullKey += key;
             }
-            Console.WriteLine("full key: {0}", fullKey);
+            Console.WriteLine("full key: {0}\n", fullKey);
+            byte[] decodedResult = XorBytesWithRepeatingKey(cipherText, fullKey);
+            Console.WriteLine("decoded message: " + Encoding.Default.GetString(decodedResult));
         }
 
         public static byte[] XorBytesWithRepeatingKey(byte[] toBeXorred, string key)

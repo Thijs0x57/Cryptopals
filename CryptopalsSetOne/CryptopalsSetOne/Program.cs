@@ -13,21 +13,21 @@ namespace CryptopalsSetOne
         public static bool debug = false;
         static void Main(string[] args)
         {
-            //ChallengeOne();
-            //Console.WriteLine();
-            //if (debug) Console.ReadKey();
-            //ChallengeTwo();
-            //Console.WriteLine();
-            //if (debug) Console.ReadKey();
+            ChallengeOne();
+            Console.WriteLine();
+            if (debug) Console.ReadKey();
+            ChallengeTwo();
+            Console.WriteLine();
+            if (debug) Console.ReadKey();
             ChallengeThree();
             Console.WriteLine();
-            //if (debug) Console.ReadKey();
-            //ChallengeFour();
-            //Console.WriteLine();
-            //if (debug) Console.ReadKey();
-            //ChallengeFive();
-            //Console.WriteLine();
-            //if (debug) Console.ReadKey();
+            if (debug) Console.ReadKey();
+            ChallengeFour();
+            Console.WriteLine();
+            if (debug) Console.ReadKey();
+            ChallengeFive();
+            Console.WriteLine();
+            if (debug) Console.ReadKey();
             ChallengeSix();
 
             Console.ReadKey();
@@ -108,7 +108,6 @@ namespace CryptopalsSetOne
 
         private static void ChallengeSix()
         {
-            Console.WriteLine("hamming distance test: " + computeHammingDistance(Encoding.ASCII.GetBytes("this is a test"), Encoding.ASCII.GetBytes("wokka wokka!!!")));
             string encoded = File.ReadAllText("6.txt");
             if (debug) Console.WriteLine("encoded with base64:\n" + encoded);
             byte[] cipherText = DecodeBase64(encoded);
@@ -161,7 +160,7 @@ namespace CryptopalsSetOne
             var iterator = 0;
             foreach (var result in bruteForceResults)
             {
-                Console.WriteLine("brute force result {0}: {1}", iterator, result);
+                if(debug)Console.WriteLine("brute force result {0}: {1}", iterator, result);
                 iterator++;
             }
 
@@ -186,7 +185,7 @@ namespace CryptopalsSetOne
 
                 fullKey += key;
             }
-            Console.WriteLine("full key: {0}\n", fullKey);
+            Console.WriteLine("full key: \"{0}\"\n", fullKey);
             byte[] decodedResult = XorBytesWithRepeatingKey(cipherText, fullKey);
             Console.WriteLine("decoded message: " + Encoding.Default.GetString(decodedResult));
         }
@@ -312,7 +311,7 @@ namespace CryptopalsSetOne
 
         public static Tuple<Tuple<string, double>,char> decodeHexString(string encodedString)
         {
-            char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+            char[] alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789: ".ToCharArray();
             double[] score = new double[alphabet.Length];
             string[] decodedArray = new string[alphabet.Length];
             // For every char of the alphabet, decode the given string.
